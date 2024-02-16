@@ -7,9 +7,5 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-git push
-git tag v$1
-git push --tags
-
-docker build --build-arg=http_proxy=$http_proxy -t discourse/mail-receiver:$1 .
-docker push discourse/mail-receiver:$1
+docker build --platform linux/arm64 --build-arg=http_proxy=$http_proxy -t womble/discourse-mail-receiver:$1 .
+docker push womble/discourse-mail-receiver:$1
