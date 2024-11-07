@@ -2,12 +2,11 @@
 
 set -e
 
-# Send syslog messages to stderr, optionally relaying them to another socket
-# for postfix-exporter to take a look at
 if [ -z "$SOCKETEE_RELAY_SOCKET" ]; then
 	/usr/bin/socat UNIX-RECV:/dev/log,mode=0666 stderr &
 else
-	/usr/local/bin/socketee /dev/log "$SOCKETEE_RELAY_SOCKET" &
+	echo "SOCKETEE_RELAY_SOCKET is not (yet) supported on arm64; see arm64 section of README for more info" >&2
+	exit 1
 fi
 
 echo "Operating environment:" >&2
@@ -49,6 +48,16 @@ for envvar in $(compgen -v); do
 		/usr/sbin/postconf -e $varname="${!envvar}"
 	fi
 done
+
+if [ "$INCLUDE_DMARC" = "true" ]; then
+  echo "Starting OpenDKIM..." >&2
+  adduser postfix opendkim #ensure postfix is part of opendkim group so it can access the socket
+  /usr/sbin/opendkim -x /etc/opendkim.conf
+
+  echo "Starting OpenDMARC..." >&2
+  adduser postfix opendmarc #ensure postfix is part of opendmarc group so it can access the socket
+  /usr/sbin/opendmarc -c /etc/opendmarc.conf
+fi
 
 # Now, make sure that the Postfix filesystem environment is sane
 mkdir -p -m 0755 /var/spool/postfix/pid

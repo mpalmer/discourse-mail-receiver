@@ -7,9 +7,8 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-git push
-git tag v$1
-git push --tags
-
-docker build --build-arg=http_proxy=$http_proxy -t discourse/mail-receiver:$1 .
-docker push discourse/mail-receiver:$1
+docker buildx create --use
+docker buildx build --platform linux/arm64 -f Dockerfile --build-arg INCLUDE_DMARC=false \
+  -t "jansorg/discourse-mail-receiver:$1" \
+  --push \
+  .

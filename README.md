@@ -3,6 +3,16 @@ and spawning an instance of another container to do "something" with the
 e-mail.  That's it.  All very simple and straightforward.  You would
 think...
 
+# ARM64 Support
+
+This is a fork of the official Discourse mail-receiver, built for arm64.  It is somewhat experimental, and if you encounter problems, please do not pester the Discourse core team.
+Report issues at https://github.com/mpalmer/discourse-mail-receiver instead.
+
+To use this `arm64` build, follow the [official instructions](https://meta.discourse.org/t/configure-direct-delivery-incoming-email-for-self-hosted-sites/49487), but when you're editing `containers/mail-receiver.yml`, change the `base_image` setting to be `womble/discourse-mail-receiver:arm64`.
+
+Note that the `SOCKETEE_RELAY_SOCKET` configuration environment variable is not (yet) supported; if you try to set it, the `mail-receiver` will refuse to start.
+If you need this functionality, [create a GitHub issue](https://github.com/mpalmer/discourse-mail-receiver/issues/new) and I'll add support for it.
+
 
 # Installation and Configuration
 
@@ -42,6 +52,15 @@ For example, if you wanted to add a pre-delivery milter, you might use:
 
     -e POSTCONF_smtpd_milters=192.0.2.42:12345
 
+## SPF, DKIM and DMARC checks
+These checks are enabled by default in the latest image `discourse/mail-receiver:release`.
+
+You may also decide whether or not to set up a Postfix server that has SPF, DKIM and DMARC checks configured by setting the build argument `INCLUDE_DMARC` to `true` or `false` when building the docker container for mail-receiver:
+
+```bash
+docker build --build-arg INCLUDE_DMARC=true -t local_discourse/mail-receiver:latest .
+```
+Configurations for these checks are stored in their respective configuration files `policyd-spf.conf`, `opendkim.conf`, `opendmarc.conf` in this repository.
 
 ## Blacklisting sender domains
 
@@ -59,8 +78,8 @@ reads all syslog data and dumps it to the container's `stderr` (which is
 then examinable by `docker logs`).
 
 If, by some chance, you want to process your Postfix logs more extensively,
-you can set `SOCKETEE_RELAY_SOCKET` and all syslog messages will also be
-sent to that socket for further processing.
+you're out of luck for the moment, because I haven't added socketee support for arm64 yet.
+If you're using `SOCKETEE_RELAY_SOCKET`, [create an issue](https://github.com/mpalmer/discourse-mail-receiver/issues/new) and I'll see what I can do.
 
 
 # Theory of Operation
