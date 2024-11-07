@@ -4,6 +4,11 @@ ARG INCLUDE_DMARC=true
 ENV INCLUDE_DMARC=${INCLUDE_DMARC}
 
 RUN DEBIAN_FRONTEND=noninteractive apt update \
+    && DEBIAN_FRONTEND=noninteractive apt -y --no-install-recommends install locales
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
+RUN locale-gen
+
+RUN DEBIAN_FRONTEND=noninteractive apt update \
 	&& DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends curl perl postfix ruby socat \
     && if [ "$INCLUDE_DMARC" = "true" ]; then \
          DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends opendmarc opendkim opendkim-tools postfix-policyd-spf-python; \
@@ -51,8 +56,8 @@ COPY lib/ /usr/local/lib/site_ruby/
 COPY boot /sbin/
 COPY fake-pups /pups/bin/pups
 
-RUN curl -sL https://github.com/discourse/socketee/releases/download/v0.0.2/socketee -o /usr/local/bin/socketee \
-	&& echo '7cd6df7aeeac0cce35c84e842b3cda5a4c36a301  /usr/local/bin/socketee' | sha1sum -c - \
-	&& chmod 0755 /usr/local/bin/socketee
+#RUN curl -sL https://github.com/discourse/socketee/releases/download/v0.0.2/socketee -o /usr/local/bin/socketee \
+#	&& echo '7cd6df7aeeac0cce35c84e842b3cda5a4c36a301  /usr/local/bin/socketee' | sha1sum -c - \
+#	&& chmod 0755 /usr/local/bin/socketee
 
 CMD ["/sbin/boot"]
